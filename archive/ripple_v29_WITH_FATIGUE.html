@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RIPPLE: Gray Scott extended RD-Condensation Explorer</title>
+    <style>
+        body { margin: 0; background: #000; color: #eee; font-family: sans-serif; overflow: hidden; display: flex; width: 100vw; height: 100vh; }
+        #controls { width: 310px; min-width: 310px; flex-shrink: 0; padding: 15px; background: #222; height: 100vh; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 10; box-sizing: border-box; }
+        #controls::-webkit-scrollbar { width: 8px; }
+        #controls::-webkit-scrollbar-track { background: #222; }
+        #controls::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        
+        canvas { flex-grow: 1; height: 100vh; width: 0; cursor: crosshair; }
+        
+        details { background: #2a2a2a; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px; padding: 5px; }
+        summary { cursor: pointer; font-weight: bold; font-size: 12px; color: #00ffcc; text-transform: uppercase; padding: 5px; outline: none; }
+        summary:hover { color: #fff; }
+        
+        .slider-group { margin-bottom: 10px; padding: 10px 5px; border-top: 1px solid #3d3d3d; }
+        label { display: block; font-size: 10px; margin-bottom: 5px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type=range], select { width: 100%; margin: 8px 0; background: #333; color: white; border: 1px solid #444; }
+        input[type=color] { width: 100%; height: 25px; border: none; background: none; cursor: pointer; margin-bottom: 10px; }
+        
+        .val { float: right; color: #00ffcc; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.3); border: 1px solid #444; padding: 1px 4px; width: 55px; text-align: right; }
+        h2 { margin: 0 0 10px 0; font-size: 18px; color: #00ffcc; border-bottom: 2px solid #00ffcc; padding-bottom: 5px; }
+        button { width: 100%; padding: 10px; cursor: pointer; background: #444; color: white; border: none; margin-top: 8px; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #555; }
+        .desc { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.4; font-style: italic; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 5px 0; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div id="controls">
+    <h2>RIPPLE Lab</h2>
+    <div class="desc">System Explorer: GS + Condensation</div>
+    <br>
+
+    <details open>
+        <summary>System & View</summary>
+        <div class="slider-group">
+            <label>Resolution</label>
+            <select id="resSelector">
+                <option value="256">256 (Fast)</option>
+                <option value="512" selected>512 (Standard)</option>
+                <option value="1024">1024 (High)</option>
+                <option value="2048">2048 (Extreme)</option>
+            </select>
+            <label>Time Step (dt) <input type="text" class="val" id="vdt" value="0.800"></label>
+            <input type="range" id="dt" min="0.1" max="2.0" step="0.05" value="0.8">
+            <label>View Scale <input type="text" class="val" id="vscale" value="1.000"></label>
+            <input type="range" id="scale" min="0.1" max="10.0" step="0.1" value="1.0">
+        </div>
+        <div class="slider-group">
+            <label>Palettes (U / V)</label>
+            <div class="toggle-row">
+                <input type="color" id="colorU" value="#ff00ff" style="width:45%;">
+                <input type="color" id="colorV" value="#00ffff" style="width:45%;">
+            </div>
+            <div class="toggle-row"><label>Reflective</label><input type="checkbox" id="reflective" checked></div>
+            <div class="toggle-row"><label>9-Point</label><input type="checkbox" id="use9Point" checked></div>
+            <div class="toggle-row" style="background: #333; padding: 4px; border-radius: 2px;"><label style="color: #00ffcc;">Morph</label><input type="checkbox" id="morphView"></div>
+        </div>
+    </details>
+
+    <details open>
+        <summary>Metabolic Gate (ATP)</summary>
+        <div class="slider-group">
+            <div class="toggle-row" style="background: #242; padding: 4px; border-radius: 2px;"><label style="color: #00ffcc;">Gate Active</label><input type="checkbox" id="fatigueToggle"></div>
+            <label>Critical V (C-crit) <input type="text" class="val" id="vthreshold" value="0.500"></label>
+            <input type="range" id="threshold" min="0.01" max="0.99" step="0.01" value="0.50">
+            <label>Starvation Pwr <input type="text" class="val" id="vfatigue" value="0.500"></label>
+            <input type="range" id="fatigue" min="0" max="1.0" step="0.01" value="0.50">
+            <div class="desc">Reduces F only when V > C-crit.</div>
+        </div>
+    </details>
+
+    <details open>
+        <summary>Gray-Scott Core</summary>
+        <div class="slider-group">
+            <label>Feed (F) <input type="text" class="val" id="vF" value="0.018"></label>
+            <input type="range" id="F" min="0.005" max="0.1" step="0.001" value="0.018">
+            <label>Kill (k) <input type="text" class="val" id="vk" value="0.051"></label>
+            <input type="range" id="k" min="0.01" max="0.15" step="0.001" value="0.051">
+        </div>
+        <div class="slider-group">
+            <label>Wavelength: Diff U <input type="text" class="val" id="vdiffU" value="0.140"></label>
+            <input type="range" id="diffU" min="0.01" max="0.5" step="0.005" value="0.14">
+            <label>Wavelength: Diff V <input type="text" class="val" id="vdiffV" value="0.070"></label>
+            <input type="range" id="diffV" min="0.01" max="0.5" step="0.005" value="0.07">
+        </div>
+    </details>
+
+    <details open>
+        <summary>Condensation Logic</summary>
+        <div class="slider-group">
+            <label>Noise/Temp <input type="text" class="val" id="vnoise" value="0.000"></label>
+            <input type="range" id="noise" min="0" max="0.1" step="0.001" value="0.000">
+        </div>
+        <div class="slider-group">
+            <label>U Visc: α | δ <input type="text" class="val" id="valpha" value="0.000"></label>
+            <input type="range" id="alpha" min="0" max="15.0" step="0.1" value="0.00">
+            <input type="text" class="val" id="vdelta" value="0.000">
+            <input type="range" id="delta" min="0" max="15.0" step="0.1" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label>V Visc: β | γ <input type="text" class="val" id="vbeta" value="0.000"></label>
+            <input type="range" id="beta" min="0" max="15.0" step="0.1" value="0.00">
+            <input type="text" class="val" id="vgamma" value="0.000">
+            <input type="range" id="gamma" min="0" max="15.0" step="0.1" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label>Tug: Kuu | Kvv <input type="text" class="val" id="vKuu" value="0.000"></label>
+            <input type="range" id="Kuu" min="-0.3" max="0.6" step="0.005" value="0.00">
+            <input type="text" class="val" id="vKvv" value="0.000">
+            <input type="range" id="Kvv" min="-0.3" max="0.6" step="0.005" value="0.00">
+        </div>
+        <div class="slider-group">
+            <label>Cross: Kvu | Kuv <input type="text" class="val" id="vKvu" value="0.000"></label>
+            <input type="range" id="Kvu" min="-0.6" max="0.6" step="0.005" value="0.00">
+            <input type="text" class="val" id="vKuv" value="0.000">
+            <input type="range" id="Kuv" min="-0.6" max="0.6" step="0.005" value="0.00">
+        </div>
+    </details>
+
+    <button id="reset">Reset Simulation</button>
+    <button id="pureBtn" style="background:#600">Pure Gray-Scott</button>
+    <button id="snapshot" style="background:#006666">Save Experiment PNG</button>
+</div>
+
+<canvas id="glCanvas"></canvas>
+
+<script>
+const vsSource = `attribute vec2 position; varying vec2 vUv; void main() { vUv = position * 0.5 + 0.5; gl_Position = vec4(position, 0.0, 1.0); }`;
+
+const fsSource = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D u_state;
+    uniform vec2 u_res;
+    uniform float u_F, u_k, u_diffU, u_diffV, u_alpha, u_beta, u_gamma, u_delta, u_Kuu, u_Kvv, u_Kuv, u_Kvu, u_noise, u_time, u_dt, u_fatigue, u_threshold;
+    uniform vec3 u_mouse;
+    uniform bool u_reflective, u_use9Point, u_fatigueToggle;
+
+    float hash(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+    }
+
+    vec2 getUV(vec2 uv) {
+        if (!u_reflective) return fract(uv);
+        vec2 m = mod(uv, 2.0);
+        return mix(m, 2.0 - m, step(1.0, m));
+    }
+
+    void main() {
+        vec2 texel = 1.0 / u_res;
+        vec4 center = texture2D(u_state, vUv);
+        vec4 n = texture2D(u_state, getUV(vUv + vec2(0.0, texel.y)));
+        vec4 s = texture2D(u_state, getUV(vUv - vec2(0.0, texel.y)));
+        vec4 e = texture2D(u_state, getUV(vUv + vec2(texel.x, 0.0)));
+        vec4 w = texture2D(u_state, getUV(vUv - vec2(texel.x, 0.0)));
+
+        vec2 lap;
+        if (u_use9Point) {
+            vec4 nw = texture2D(u_state, getUV(vUv + vec2(-texel.x,  texel.y)));
+            vec4 ne = texture2D(u_state, getUV(vUv + vec2( texel.x,  texel.y)));
+            vec4 sw = texture2D(u_state, getUV(vUv + vec2(-texel.x, -texel.y)));
+            vec4 se = texture2D(u_state, getUV(vUv + vec2( texel.x, -texel.y)));
+            lap = ((n.xy+s.xy+e.xy+w.xy)*0.2 + (nw.xy+ne.xy+sw.xy+se.xy)*0.05 - center.xy)*4.0; 
+        } else {
+            lap = (n.xy+s.xy+e.xy+w.xy - 4.0*center.xy);
+        }
+
+        vec2 gradU = vec2(e.x - w.x, n.x - s.x) * 0.5;
+        vec2 gradV = vec2(e.y - w.y, n.y - s.y) * 0.5;
+
+        float u = center.x; float v = center.y;
+        
+        float dU = u_diffU * exp(-u_alpha * u * u - u_delta * v * v);
+        float dV = u_diffV * exp(-u_beta * v * v - u_gamma * u * u);
+
+        float tugU = u_Kuu * (u*lap.x + dot(gradU, gradU)) + u_Kuv * (u*lap.y + dot(gradU, gradV));
+        float tugV = u_Kvu * (v*lap.x + dot(gradV, gradU)) + u_Kvv * (v*lap.y + dot(gradV, gradV));
+
+        float noiseU = (hash(vUv + u_time) - 0.5) * u_noise;
+        float noiseV = (hash(vUv - u_time) - 0.5) * u_noise;
+
+        // GATED STARVATION LOGIC
+        float F_eff = u_F;
+        if(u_fatigueToggle) {
+            float penalty = smoothstep(u_threshold - 0.05, u_threshold + 0.05, v);
+            F_eff *= (1.0 - penalty * u_fatigue);
+        }
+
+        float du = dU * lap.x + tugU - u*v*v + F_eff * (1.0 - u) + noiseU;
+        float dv = dV * lap.y + tugV + u*v*v - (u_F + u_k) * v + noiseV;
+
+        vec2 next = center.xy + vec2(du, dv) * u_dt;
+        if(u_mouse.z > 0.5 && distance(vUv * u_res, u_mouse.xy) < 15.0) next = vec2(0.5, 0.25);
+        gl_FragColor = vec4(clamp(next, 0.0, 1.0), 0.0, 1.0);
+    }
+`;
+
+const displayFsSource = `
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D u_state;
+    uniform vec3 u_colorU, u_colorV;
+    uniform bool u_morph;
+    uniform float u_time, u_scale;
+    void main() {
+        vec2 uv = (vUv - 0.5) / u_scale + 0.5;
+        float mask = 1.0;
+        if (u_morph) {
+            vec2 p = (vUv * 2.0 - 1.0);
+            float angle = atan(p.y, p.x);
+            float wobble = 0.04 * sin(angle * 6.0 + u_time) + 0.015 * sin(angle * 14.0 - u_time * 1.3);
+            mask = smoothstep(0.85 + wobble, 0.83 + wobble, length(p));
+            uv = 0.5 + ((p / (1.0 + length(p) * 0.4)) / u_scale) * 0.5;
+        }
+        vec4 state = texture2D(u_state, fract(uv));
+        gl_FragColor = vec4((u_colorV * state.y + u_colorU * state.x) * mask, 1.0);
+    }
+`;
+
+const canvas = document.getElementById('glCanvas');
+const gl = canvas.getContext('webgl', {preserveDrawingBuffer: true});
+gl.getExtension('OES_texture_float');
+
+function createProgram(gl, vs, fs) {
+    const p = gl.createProgram();
+    const s1 = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(s1, vs); gl.compileShader(s1);
+    const s2 = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(s2, fs); gl.compileShader(s2);
+    gl.attachShader(p, s1); gl.attachShader(p, s2); gl.linkProgram(p);
+    return p;
+}
+
+const simProg = createProgram(gl, vsSource, fsSource);
+const drawProg = createProgram(gl, vsSource, displayFsSource);
+const buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+
+let width, height, back, front, fb = gl.createFramebuffer(), texturesInitialized = false;
+
+function initTextures() {
+    texturesInitialized = false;
+    width = parseInt(document.getElementById('resSelector').value);
+    height = width;
+    if(back) gl.deleteTexture(back);
+    if(front) gl.deleteTexture(front);
+    back = createTexture(); front = createTexture();
+    reset();
+    texturesInitialized = true;
+}
+
+function createTexture() {
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    return tex;
+}
+
+function reset() {
+    const data = new Float32Array(width * height * 4);
+    for(let i=0; i<data.length; i+=4) {
+        data[i] = 1.0; if(Math.random() > 0.99) { data[i] = 0.5; data[i+1] = 0.25; }
+    }
+    gl.bindTexture(gl.TEXTURE_2D, back); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.FLOAT, data);
+}
+
+let mouse = [0, 0, 0];
+canvas.onmousedown = () => mouse[2] = 1;
+window.onmouseup = () => mouse[2] = 0;
+canvas.onmousemove = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scale = parseFloat(document.getElementById('scale').value);
+    mouse[0] = ((e.clientX - rect.left) / rect.width - 0.5) / scale * width + (width/2);
+    mouse[1] = (0.5 - (e.clientY - rect.top) / rect.height) / scale * height + (height/2);
+};
+
+const params = ['F', 'k', 'diffU', 'diffV', 'alpha', 'beta', 'gamma', 'delta', 'Kuu', 'Kvv', 'Kuv', 'Kvu', 'noise', 'scale', 'dt', 'fatigue', 'threshold'];
+params.forEach(p => {
+    const s = document.getElementById(p), v = document.getElementById('v' + p);
+    if(s && v) {
+        s.oninput = () => { v.value = parseFloat(s.value).toFixed(3); };
+        v.onchange = () => {
+            let val = parseFloat(v.value);
+            if(isNaN(val)) val = 0;
+            if(val > s.max) s.max = val * 1.5;
+            if(val < s.min) s.min = val * 1.5;
+            s.value = val;
+        };
+    }
+});
+
+document.getElementById('resSelector').onchange = initTextures;
+document.getElementById('reset').onclick = reset;
+document.getElementById('pureBtn').onclick = () => {
+    params.forEach(p => {
+        if(!['F', 'k', 'dt', 'diffU', 'diffV'].includes(p)) {
+            const val = (p === 'scale') ? 1.0 : 0.0;
+            const el = document.getElementById(p);
+            const vel = document.getElementById('v' + p);
+            if(el) el.value = val;
+            if(vel) vel.value = val.toFixed(3);
+        }
+    });
+    document.getElementById('fatigueToggle').checked = false;
+};
+
+document.getElementById('snapshot').onclick = () => {
+    const now = new Date();
+    const timestamp = `${now.getMonth()+1}-${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
+    const link = document.createElement('a');
+    link.download = `RIPPLE_EXP_${timestamp}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+};
+
+initTextures();
+
+function render() {
+    if (!texturesInitialized) { requestAnimationFrame(render); return; }
+    gl.viewport(0, 0, width, height);
+    gl.useProgram(simProg);
+    const time = performance.now() / 1000;
+    const refl = document.getElementById('reflective').checked ? 1 : 0;
+    const use9 = document.getElementById('use9Point').checked ? 1 : 0;
+    const fatT = document.getElementById('fatigueToggle').checked ? 1 : 0;
+
+    for(let i=0; i<36; i++) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, front, 0);
+        gl.bindTexture(gl.TEXTURE_2D, back);
+        gl.uniform2f(gl.getUniformLocation(simProg, 'u_res'), width, height);
+        gl.uniform3f(gl.getUniformLocation(simProg, 'u_mouse'), mouse[0], mouse[1], mouse[2]);
+        gl.uniform1i(gl.getUniformLocation(simProg, 'u_reflective'), refl);
+        gl.uniform1i(gl.getUniformLocation(simProg, 'u_use9Point'), use9);
+        gl.uniform1i(gl.getUniformLocation(simProg, 'u_fatigueToggle'), fatT);
+        gl.uniform1f(gl.getUniformLocation(simProg, 'u_time'), time + i);
+        params.forEach(p => {
+            if(p !== 'scale') {
+                const loc = gl.getUniformLocation(simProg, 'u_'+p);
+                if(loc) gl.uniform1f(loc, parseFloat(document.getElementById(p).value));
+            }
+        });
+        const posLoc = gl.getAttribLocation(simProg, 'position');
+        gl.enableVertexAttribArray(posLoc); gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        let tmp = back; back = front; front = tmp;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(drawProg);
+    const hexToRgb = (hex) => [parseInt(hex.slice(1,3),16)/255, parseInt(hex.slice(3,5),16)/255, parseInt(hex.slice(5,7),16)/255];
+    gl.uniform3fv(gl.getUniformLocation(drawProg, 'u_colorU'), hexToRgb(document.getElementById('colorU').value));
+    gl.uniform3fv(gl.getUniformLocation(drawProg, 'u_colorV'), hexToRgb(document.getElementById('colorV').value));
+    gl.uniform1i(gl.getUniformLocation(drawProg, 'u_morph'), document.getElementById('morphView').checked ? 1 : 0);
+    gl.uniform1f(gl.getUniformLocation(drawProg, 'u_scale'), parseFloat(document.getElementById('scale').value));
+    gl.uniform1f(gl.getUniformLocation(drawProg, 'u_time'), time);
+    gl.bindTexture(gl.TEXTURE_2D, back);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    requestAnimationFrame(render);
+}
+render();
+</script>
+</body>
+</html>

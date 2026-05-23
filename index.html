@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIPPLE: RD-Condensation Explorer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="controls">
+    <h2>RIPPLE Lab</h2>
+    <div class="subtitle">RD-Condensation Explorer</div>
+    
+    <details open>
+        <summary>System & View</summary>
+        <div class="slider-group">
+            <label>Resolution</label>
+            <select id="resSelector">
+                <option value="256">256 (Fast)</option>
+                <option value="512" selected>512 (Standard)</option>
+                <option value="1024">1024 (High)</option>
+                <option value="2048">2048 (Extreme)</option>
+            </select>
+            <label>Time Step (dt)</label>
+            <div class="control-row">
+                <input type="range" id="dt" min="0.1" max="2.0" step="0.05" value="0.8">
+                <input type="text" class="val" id="vdt" value="0.800">
+            </div>
+            <label>View Scale</label>
+            <div class="control-row">
+                <input type="range" id="scale" min="0.1" max="10.0" step="0.1" value="1.0">
+                <input type="text" class="val" id="vscale" value="1.000">
+            </div>
+        </div>
+        <div class="slider-group">
+            <label>Palettes (U / V)</label>
+            <div class="toggle-row">
+                <input type="color" id="colorU" value="#ff00ff" style="width:48%;">
+                <input type="color" id="colorV" value="#00ffff" style="width:48%;">
+            </div>
+            <div class="toggle-row"><label>Reflective Boundary</label><input type="checkbox" id="reflective" checked></div>
+            <div class="toggle-row"><label>9-Point Laplacian</label><input type="checkbox" id="use9Point" checked></div>
+            <div class="toggle-row" style="background: #333; padding: 6px; border-radius: 4px;"><label style="color: #00ffcc; margin-bottom: 0;">Morph View</label><input type="checkbox" id="morphView"></div>
+        </div>
+    </details>
+
+    <details open>
+        <summary>Gray-Scott Core</summary>
+        <div class="slider-group">
+            <label>Feed (F)</label>
+            <div class="control-row">
+                <input type="range" id="F" min="0.005" max="0.1" step="0.001" value="0.006">
+                <input type="text" class="val" id="vF" value="0.006">
+            </div>
+            <label>Kill (k)</label>
+            <div class="control-row">
+                <input type="range" id="k" min="0.01" max="0.15" step="0.001" value="0.035">
+                <input type="text" class="val" id="vk" value="0.035">
+            </div>
+        </div>
+        <div class="slider-group">
+            <label>Diff U (Substrate)</label>
+            <div class="control-row">
+                <input type="range" id="diffU" min="0.01" max="0.5" step="0.005" value="0.070">
+                <input type="text" class="val" id="vdiffU" value="0.070">
+            </div>
+            <label>Diff V (Activator)</label>
+            <div class="control-row">
+                <input type="range" id="diffV" min="0.01" max="0.5" step="0.005" value="0.045">
+                <input type="text" class="val" id="vdiffV" value="0.045">
+            </div>
+        </div>
+    </details>
+
+    <details open>
+        <summary>Condensation Logic</summary>
+        
+        <!-- 1. Diffusivity Effects -->
+        <details>
+            <summary style="font-size: 10px; color: #aaa;">1. Diffusivity Effects</summary>
+            <div class="slider-group">
+                <label class="tooltip-trigger">U Visc: α | δ
+                    <span class="tooltip" data-label="visc_u"></span>
+                </label>
+                <div class="control-row">
+                    <input type="range" id="alpha" min="0" max="15.0" step="0.1" value="0.00">
+                    <input type="text" class="val" id="valpha" value="0.000">
+                </div>
+                <div class="control-row">
+                    <input type="range" id="delta" min="0" max="15.0" step="0.1" value="0.00">
+                    <input type="text" class="val" id="vdelta" value="0.000">
+                </div>
+            </div>
+            <div class="slider-group">
+                <label class="tooltip-trigger">V Visc: β | γ
+                    <span class="tooltip" data-label="visc_v"></span>
+                </label>
+                <div class="control-row">
+                    <input type="range" id="beta" min="0" max="15.0" step="0.1" value="0.00">
+                    <input type="text" class="val" id="vbeta" value="0.000">
+                </div>
+                <div class="control-row">
+                    <input type="range" id="gamma" min="0" max="15.0" step="0.1" value="0.00">
+                    <input type="text" class="val" id="vgamma" value="0.000">
+                </div>
+            </div>
+        </details>
+
+        <!-- 2. Reactivity Effects -->
+        <details>
+            <summary style="font-size: 10px; color: #aaa;">2. Reactivity Effects</summary>
+            <div class="slider-group">
+                <div class="toggle-row tooltip-trigger" style="background: #1a331a; padding: 6px; border-radius: 4px;">
+                    <label style="color: #00ffcc; margin-bottom: 0;">Metabolic Gate</label>
+                    <span class="tooltip" data-label="metabolic_gate"></span>
+                    <input type="checkbox" id="fatigueToggle">
+                </div>
+                <label>Critical V (C-crit)</label>
+                <div class="control-row">
+                    <input type="range" id="threshold" min="0.01" max="0.99" step="0.01" value="0.50">
+                    <input type="text" class="val" id="vthreshold" value="0.500">
+                </div>
+                <label>Starvation Pwr</label>
+                <div class="control-row">
+                    <input type="range" id="fatigue" min="0" max="1.0" step="0.01" value="0.50">
+                    <input type="text" class="val" id="vfatigue" value="0.500">
+                </div>
+            </div>
+        </details>
+
+        <!-- 3. Advective Effects -->
+        <details>
+            <summary style="font-size: 10px; color: #aaa;">3. Advective Effects</summary>
+            <div class="slider-group">
+                <label class="tooltip-trigger">Tug: Kuu | Kvv
+                    <span class="tooltip" data-label="advection"></span>
+                </label>
+                <div class="control-row">
+                    <input type="range" id="Kuu" min="-0.3" max="0.6" step="0.005" value="0.00">
+                    <input type="text" class="val" id="vKuu" value="0.000">
+                </div>
+                <div class="control-row">
+                    <input type="range" id="Kvv" min="-0.3" max="0.6" step="0.005" value="0.00">
+                    <input type="text" class="val" id="vKvv" value="0.000">
+                </div>
+            </div>
+            <div class="slider-group">
+                <label class="tooltip-trigger">Cross: Kvu | Kuv
+                    <span class="tooltip" data-label="cross_advection"></span>
+                </label>
+                <div class="control-row">
+                    <input type="range" id="Kvu" min="-0.6" max="0.6" step="0.005" value="0.00">
+                    <input type="text" class="val" id="vKvu" value="0.000">
+                </div>
+                <div class="control-row">
+                    <input type="range" id="Kuv" min="-0.6" max="0.6" step="0.005" value="0.00">
+                    <input type="text" class="val" id="vKuv" value="0.000">
+                </div>
+            </div>
+        </details>
+    </details>
+
+    <details>
+        <summary>Thermal Noise</summary>
+        <div class="slider-group">
+            <label>Thermal Noise Intensity</label>
+            <div class="control-row">
+                <input type="range" id="noise" min="0" max="0.1" step="0.001" value="0.000">
+                <input type="text" class="val" id="vnoise" value="0.000">
+            </div>
+        </div>
+    </details>
+
+    <details open>
+        <summary>User Memory (Hotkeys)</summary>
+        <div class="slider-group">
+            <div class="desc" style="font-style: normal; margin-bottom: 10px;">
+                Press <span style="color:#00ffcc">Shift + [1-5]</span> to save current state.<br>
+                Press <span style="color:#00ffcc">[1-5]</span> to recall state.
+            </div>
+            <div id="memory-slots" style="display: flex; gap: 5px; justify-content: space-between;">
+                <div class="slot" id="slot-1" style="flex:1; height:4px; background:#333; border-radius:2px;"></div>
+                <div class="slot" id="slot-2" style="flex:1; height:4px; background:#333; border-radius:2px;"></div>
+                <div class="slot" id="slot-3" style="flex:1; height:4px; background:#333; border-radius:2px;"></div>
+                <div class="slot" id="slot-4" style="flex:1; height:4px; background:#333; border-radius:2px;"></div>
+                <div class="slot" id="slot-5" style="flex:1; height:4px; background:#333; border-radius:2px;"></div>
+            </div>
+        </div>
+    </details>
+
+    <button id="reset" class="danger">Reset Simulation</button>
+    <button id="pureBtn" class="secondary">Pure Gray-Scott</button>
+    <button id="snapshot">Export Experiment (.png)</button>
+    
+    <div class="desc" style="margin-top: 20px; border: none; background: transparent; color: #555;">
+        RIPPLE: Reaction-diffusion with Inter-species Pressure, Pressure-Layering and Entrainment.
+    </div>
+</div>
+
+<div id="resizer" style="width: 5px; cursor: col-resize; background: #333; height: 100vh; z-index: 20; transition: background 0.2s;"></div>
+
+<div id="notification" style="position: fixed; top: 20px; right: 20px; background: rgba(0, 255, 204, 0.8); color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-family: sans-serif; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none;"></div>
+
+<canvas id="glCanvas"></canvas>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
