@@ -15,6 +15,9 @@ export class Simulation {
         this.textures = { front: null, back: null };
         this.mouse = [0, 0, 0];
         
+        this.lastLoadedState = null;
+        this.lastSeedRes = 0;
+
         this.init();
     }
 
@@ -65,7 +68,7 @@ export class Simulation {
 
         this.textures.back = this.createTexture();
         this.textures.front = this.createTexture();
-        this.reset();
+        this.reset(false); // Always start fresh on resolution change/init
         this.texturesInitialized = true;
     }
 
@@ -79,7 +82,12 @@ export class Simulation {
         return tex;
     }
 
-    reset() {
+    reset(useLastSeed = false) {
+        if (useLastSeed && this.lastLoadedState && this.lastSeedRes === this.width) {
+            this.loadState(this.lastLoadedState, false);
+            return true; // Indicate success
+        }
+
         const data = new Float32Array(this.width * this.height * 4);
         for (let i = 0; i < data.length; i += 4) {
             data[i] = 1.0;
@@ -91,6 +99,9 @@ export class Simulation {
         const gl = this.gl;
         gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, data);
+        gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, data);
+        return false;
     }
 
     updateMouse(x, y, down, scale) {
@@ -119,7 +130,7 @@ export class Simulation {
             gl.uniform3f(gl.getUniformLocation(prog, 'u_mouse'), this.mouse[0], this.mouse[1], this.mouse[2]);
             gl.uniform1i(gl.getUniformLocation(prog, 'u_reflective'), params.reflective ? 1 : 0);
             gl.uniform1i(gl.getUniformLocation(prog, 'u_use9Point'), params.use9Point ? 1 : 0);
-            gl.uniform1i(gl.getUniformLocation(prog, 'u_fatigueToggle'), params.fatigueToggle ? 1 : 0);
+            gl.uniform1i(gl.getUniformLocation(prog, 'u_reactActive'), params.reactActive ? 1 : 0);
             gl.uniform1f(gl.getUniformLocation(prog, 'u_time'), time + i);
 
             // Set all numeric params
@@ -166,5 +177,28 @@ export class Simulation {
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    // RESEARCH TOOLS: State Serialization
+    dumpState() {
+        const gl = this.gl;
+        const pixels = new Float32Array(this.width * this.height * 4);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.textures.back, 0);
+        gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.FLOAT, pixels);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return pixels;
+    }
+
+    loadState(data, saveAsSeed = true) {
+        if (saveAsSeed) {
+            this.lastLoadedState = new Float32Array(data);
+            this.lastSeedRes = this.width;
+        }
+        const gl = this.gl;
+        gl.bindTexture(gl.TEXTURE_2D, this.textures.back);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, data);
+        gl.bindTexture(gl.TEXTURE_2D, this.textures.front);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.FLOAT, data);
     }
 }

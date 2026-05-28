@@ -9,7 +9,7 @@
 <body>
 
 <div id="controls">
-    <h2>RIPPLE Lab</h2>
+    <h2>RIPPLE</h2>
     <div class="subtitle">RD-Condensation Explorer</div>
     
     <details open>
@@ -75,63 +75,93 @@
 
     <details open>
         <summary>Condensation Logic</summary>
-        
-        <!-- 1. Diffusivity Effects -->
-        <details>
-            <summary style="font-size: 10px; color: #aaa;">1. Diffusivity Effects</summary>
-            <div class="slider-group">
-                <label class="tooltip-trigger">U Visc: α | δ
-                    <span class="tooltip" data-label="visc_u"></span>
+
+        <!-- A. Threshold Gated Effects -->
+        <details open>
+            <summary style="font-size: 10px; color: #00ffcc; border-bottom: 1px solid #333;">A. Concentration-Gated Effects (Phase Transition)</summary>
+            
+            <div class="slider-group" style="background: rgba(0, 255, 204, 0.03);">
+                <label class="tooltip-trigger">Critical Thresholds (U | V)
+                    <span class="tooltip" data-label="crit_thresh"></span>
                 </label>
                 <div class="control-row">
-                    <input type="range" id="alpha" min="0" max="15.0" step="0.1" value="0.00">
-                    <input type="text" class="val" id="valpha" value="0.000">
+                    <input type="range" id="threshU" min="0.01" max="0.99" step="0.01" value="0.50">
+                    <div id="swatchU" style="width: 15px; height: 15px; border-radius: 50%; border: 1px solid #444; flex-shrink: 0;"></div>
+                    <input type="text" class="val" id="vthreshU" value="0.500">
                 </div>
                 <div class="control-row">
-                    <input type="range" id="delta" min="0" max="15.0" step="0.1" value="0.00">
-                    <input type="text" class="val" id="vdelta" value="0.000">
+                    <input type="range" id="threshV" min="0.01" max="0.99" step="0.01" value="0.50">
+                    <div id="swatchV" style="width: 15px; height: 15px; border-radius: 50%; border: 1px solid #444; flex-shrink: 0;"></div>
+                    <input type="text" class="val" id="vthreshV" value="0.500">
+                </div>            </div>
+
+            <!-- A1. Diffusivity -->
+            <details>
+                <summary style="font-size: 9px; color: #aaa;">A.1 Diffusivity (Viscosity)</summary>
+                <div class="slider-group">
+                    <label class="tooltip-trigger">U Visc: α | δ
+                        <span class="tooltip" data-label="visc_u"></span>
+                    </label>
+                    <div class="control-row">
+                        <input type="range" id="alpha" min="0" max="15.0" step="0.1" value="0.00">
+                        <input type="text" class="val" id="valpha" value="0.000">
+                    </div>
+                    <div class="control-row">
+                        <input type="range" id="delta" min="0" max="15.0" step="0.1" value="0.00">
+                        <input type="text" class="val" id="vdelta" value="0.000">
+                    </div>
                 </div>
-            </div>
-            <div class="slider-group">
-                <label class="tooltip-trigger">V Visc: β | γ
-                    <span class="tooltip" data-label="visc_v"></span>
-                </label>
-                <div class="control-row">
-                    <input type="range" id="beta" min="0" max="15.0" step="0.1" value="0.00">
-                    <input type="text" class="val" id="vbeta" value="0.000">
+                <div class="slider-group">
+                    <label class="tooltip-trigger">V Visc: β | γ
+                        <span class="tooltip" data-label="visc_v"></span>
+                    </label>
+                    <div class="control-row">
+                        <input type="range" id="beta" min="0" max="15.0" step="0.1" value="0.00">
+                        <input type="text" class="val" id="vbeta" value="0.000">
+                    </div>
+                    <div class="control-row">
+                        <input type="range" id="gamma" min="0" max="15.0" step="0.1" value="0.00">
+                        <input type="text" class="val" id="vgamma" value="0.000">
+                    </div>
                 </div>
-                <div class="control-row">
-                    <input type="range" id="gamma" min="0" max="15.0" step="0.1" value="0.00">
-                    <input type="text" class="val" id="vgamma" value="0.000">
+            </details>
+
+            <!-- A2. Reactivity -->
+            <details>
+                <summary style="font-size: 9px; color: #aaa;">A.2 Reactivity (Active Feedback)</summary>
+                <div class="slider-group">
+                    <div class="toggle-row tooltip-trigger" style="background: #1a331a; padding: 6px; border-radius: 4px;">
+                        <label style="color: #00ffcc; margin-bottom: 0;">Active Feedback</label>
+                        <span class="tooltip" data-label="metabolic_gate"></span>
+                        <input type="checkbox" id="reactActive">
+                    </div>
+                    
+                    <label>Influence on Feed (U→F | V→F)</label>
+                    <div class="control-row">
+                        <input type="range" id="infUF" min="-1.0" max="1.0" step="0.01" value="0.00">
+                        <input type="text" class="val" id="vinfUF" value="0.000">
+                    </div>
+                    <div class="control-row">
+                        <input type="range" id="infVF" min="-1.0" max="1.0" step="0.01" value="0.00">
+                        <input type="text" class="val" id="vinfVF" value="0.000">
+                    </div>
+
+                    <label>Influence on Kill (U→k | V→k)</label>
+                    <div class="control-row">
+                        <input type="range" id="infUk" min="-1.0" max="1.0" step="0.01" value="0.00">
+                        <input type="text" class="val" id="vinfUk" value="0.000">
+                    </div>
+                    <div class="control-row">
+                        <input type="range" id="infVk" min="-1.0" max="1.0" step="0.01" value="0.00">
+                        <input type="text" class="val" id="vinfVk" value="0.000">
+                    </div>
                 </div>
-            </div>
+            </details>
         </details>
 
-        <!-- 2. Reactivity Effects -->
+        <!-- B. Advective / Miscibility Effects -->
         <details>
-            <summary style="font-size: 10px; color: #aaa;">2. Reactivity Effects</summary>
-            <div class="slider-group">
-                <div class="toggle-row tooltip-trigger" style="background: #1a331a; padding: 6px; border-radius: 4px;">
-                    <label style="color: #00ffcc; margin-bottom: 0;">Metabolic Gate</label>
-                    <span class="tooltip" data-label="metabolic_gate"></span>
-                    <input type="checkbox" id="fatigueToggle">
-                </div>
-                <label>Critical V (C-crit)</label>
-                <div class="control-row">
-                    <input type="range" id="threshold" min="0.01" max="0.99" step="0.01" value="0.50">
-                    <input type="text" class="val" id="vthreshold" value="0.500">
-                </div>
-                <label>Starvation Pwr</label>
-                <div class="control-row">
-                    <input type="range" id="fatigue" min="0" max="1.0" step="0.01" value="0.50">
-                    <input type="text" class="val" id="vfatigue" value="0.500">
-                </div>
-            </div>
-        </details>
-
-        <!-- 3. Advective Effects -->
-        <details>
-            <summary style="font-size: 10px; color: #aaa;">3. Advective Effects</summary>
+            <summary style="font-size: 10px; color: #00ffcc; border-bottom: 1px solid #333;">B. Phase Separation / Miscibility Effects (advective tugs)</summary>
             <div class="slider-group">
                 <label class="tooltip-trigger">Tug: Kuu | Kvv
                     <span class="tooltip" data-label="advection"></span>
@@ -162,9 +192,11 @@
     </details>
 
     <details>
-        <summary>Thermal Noise</summary>
+        <summary class="tooltip-trigger">Thermal Noise
+            <span class="tooltip" data-label="thermal_noise"></span>
+        </summary>
         <div class="slider-group">
-            <label>Thermal Noise Intensity</label>
+            <label>Noise Intensity</label>
             <div class="control-row">
                 <input type="range" id="noise" min="0" max="0.1" step="0.001" value="0.000">
                 <input type="text" class="val" id="vnoise" value="0.000">
@@ -189,12 +221,26 @@
         </div>
     </details>
 
+    <details>
+        <summary style="color: #ffaa00;"> Simulation Tools</summary>
+        <div class="slider-group">
+            <button class="secondary" onclick="ui.exportState()">Dump Seed (.bin)</button>
+            <input type="file" id="stateLoader" style="display:none" onchange="ui.importState(this.files[0])">
+            <button class="secondary" onclick="document.getElementById('stateLoader').click()">Load Seed (.bin)</button>
+            <div class="toggle-row" style="margin-top: 8px;">
+                <label style="font-size: 11px; color: #ffaa00;">Persistent Seed on Reset</label>
+                <input type="checkbox" id="useLastSeed">
+            </div>
+            <div class="desc">Freeze the current wave state and reload it later to start different experiments from the same exact point.</div>
+        </div>
+    </details>
+
     <button id="reset" class="danger">Reset Simulation</button>
-    <button id="pureBtn" class="secondary">Pure Gray-Scott</button>
+    <button id="pureBtn" class="secondary">Revert to Pure Gray-Scott Core</button>
     <button id="snapshot">Export Experiment (.png)</button>
     
     <div class="desc" style="margin-top: 20px; border: none; background: transparent; color: #555;">
-        RIPPLE: Reaction-diffusion with Inter-species Pressure, Pressure-Layering and Entrainment.
+        RIPPLE RD-Condensation Explorer
     </div>
 </div>
 
@@ -205,5 +251,6 @@
 <canvas id="glCanvas"></canvas>
 
 <script type="module" src="src/main.js"></script>
+<script src="src/sweeps.js"></script>
 </body>
 </html>

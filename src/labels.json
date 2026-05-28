@@ -1,7 +1,8 @@
 {
-    "metabolic_gate": "Dynamic metabolic constraint: reduces Feed (F) only when activator V exceeds C-crit.",
-    "visc_u": "U Viscosity (α | δ): How strongly U's concentration slows U's own diffusion (α) or V's diffusion (δ).",
-    "visc_v": "V Viscosity (β | γ): How strongly V's concentration slows V's own diffusion (β) or U's diffusion (γ).",
-    "advection": "Advective Tugging (Kuu | Kvv): Spatial coupling where species gradients pull themselves into 'tighter' regions.",
-    "cross_advection": "Cross Tugging (Kvu | Kuv): Interaction where one species gradient induces advection in the other."
+    "metabolic_gate": "Generalized Reactivity: Species concentrations modulate the global Feed (F) and Kill (k) rates when exceeding their thresholds.",
+    "visc_u": "U Viscosity (α | δ): How strongly U slows its own diffusion (α) or V's diffusion (δ).",
+    "visc_v": "V Viscosity (β | γ): How strongly V slows its own diffusion (β) or U's diffusion (γ).",
+    "advection": "Advective Tugging (Kuu | Kvv): Species gradients induce self-advection, pulling concentrations into sharper structures.",
+    "cross_advection": "Cross Tugging (Kvu | Kuv): Interaction where one species gradient induces advective motion in the other.",
+    "thermal_noise": "Stochastic perturbations: Adds random fluctuations to species concentrations each step to test system stability."
 }

@@ -16,6 +16,7 @@ async function start() {
     });
 
     const ui = new UI(simulation);
+    window.ui = ui; // Expose for console research tools
 
     // Sidebar Resizer Logic
     const resizer = document.getElementById('resizer');
