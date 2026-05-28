@@ -8,6 +8,7 @@ export class Simulation {
 
         this.width = config.resolution;
         this.height = config.resolution;
+        this.initialSeed = config.initialSeed || null;
         this.fb = this.gl.createFramebuffer();
         this.texturesInitialized = false;
         
@@ -34,6 +35,11 @@ export class Simulation {
         this.buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), this.gl.STATIC_DRAW);
+
+        if (this.initialSeed) {
+            this.lastLoadedState = this.initialSeed;
+            this.lastSeedRes = this.width;
+        }
 
         this.initTextures(this.width);
     }
@@ -68,7 +74,11 @@ export class Simulation {
 
         this.textures.back = this.createTexture();
         this.textures.front = this.createTexture();
-        this.reset(false); // Always start fresh on resolution change/init
+        
+        // Use the initial seed if it exists and matches resolution, otherwise random noise
+        const useSeed = this.lastLoadedState && this.lastSeedRes === this.width;
+        this.reset(useSeed);
+        
         this.texturesInitialized = true;
     }
 

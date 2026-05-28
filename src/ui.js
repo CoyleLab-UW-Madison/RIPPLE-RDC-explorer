@@ -127,10 +127,13 @@ export class UI {
             }
         });
 
-        // Mouse handling
-        this.sim.canvas.addEventListener('mousedown', () => this.isMouseDown = true);
-        window.addEventListener('mouseup', () => this.isMouseDown = false);
-        this.sim.canvas.addEventListener('mousemove', (e) => {
+        // Pointer handling
+        this.sim.canvas.addEventListener('pointerdown', (e) => {
+            this.isMouseDown = true;
+            this.sim.updateMouse(e.clientX, e.clientY, this.isMouseDown, this.params.scale);
+        });
+        window.addEventListener('pointerup', () => this.isMouseDown = false);
+        this.sim.canvas.addEventListener('pointermove', (e) => {
             this.sim.updateMouse(e.clientX, e.clientY, this.isMouseDown, this.params.scale);
         });
     }
